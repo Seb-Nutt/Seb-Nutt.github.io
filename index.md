@@ -1,6 +1,7 @@
 # CS 30 Work
+
 ## Demos
-- i wont link to demos here
+- [Moveing Square](01-demo)
 
 ## Assignments
 - add assignments
