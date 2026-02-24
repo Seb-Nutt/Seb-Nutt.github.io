@@ -30,6 +30,7 @@ let ballYVelocity = 0;
 let ballY;
 let ballRadius;
 let positions = [];
+let change;
 
 function draw() {
   background('navy');
@@ -115,7 +116,7 @@ function moveBall(){
     ballYVelocity = 0;
   }
   
-  if ((ballX < 0 || ballX > width) && !mouseIsPressed){
+  if (ballX > 0 && ballX < width){
     
     ballXVelocity = calculateVelocity();
     ballX += ballXVelocity;
@@ -125,10 +126,11 @@ function moveBall(){
 
 function calculateVelocity(){
 
-  if (millis()%1000){
+  if (millis()%1000 === 0){
     change = currentPosition-lastPosition;
     lastPosition = currentPosition; 
     currentPosition = ballX;
   }
+  console.log(change);
   return change;
 }
