@@ -30,7 +30,10 @@ let ballYVelocity = 0;
 let ballY;
 let ballRadius;
 let positions = [];
-let change;
+let change = 0;
+let lastPosition = 0;
+let lastSwitch = 0;
+let score = 0;
 
 function draw() {
   background('navy');
@@ -39,6 +42,8 @@ function draw() {
   drawHoop();
   drawBall();
   moveBall();
+  detectScore();
+  displayScore();
   
 }
 
@@ -86,6 +91,7 @@ function drawHoop(){
   quad(27*width/32, postHeight + 37*height/256, 27*width/32, postHeight + height/16, 29*width/32, postHeight + height/10, 29*width/32, postHeight + 2*height/11);
   
   // draw rim
+  // layering is based on the order drawn
   stroke('red');
   strokeWeight(10);
   noFill();
@@ -109,27 +115,44 @@ function moveBall(){
     ballY = mouseY;
   }
   if (ballY < height-height/8 && !mouseIsPressed){
-    ballYVelocity += ballY/100;
+    ballYVelocity += ballY/1000;
     ballY += ballYVelocity;
   }
   else{
     ballYVelocity = 0;
   }
   
-  if (ballX > 0 && ballX < width){
+  if (ballIn()){
     
     ballXVelocity = calculateVelocity();
-    ballX += ballXVelocity;
+    if (!mouseIsPressed){
+      ballX += ballXVelocity/10;
+    }
   }
-  
+  ballXVelocity--;
 }
 
 function calculateVelocity(){
-
-  if (millis() > lastSwitch+1){
+// make a y velocity one
+  if (millis() > lastSwitch+100 && ballIn()){
+    change = ballX-lastPosition;
+    lastPosition = ballX;
     lastSwitch = millis();
-    change = ting;
   }
   console.log(change);
   return change;
+}
+
+function ballIn(){
+  // return is the ball is in the screen
+  return ballX > 0 && ballX < width;
+}
+
+function detectScore(){
+  // if (ballX)
+}
+
+function displayScore(){
+  fill('White');
+  text(`Score: ${score}`, width/4, height/8);
 }
