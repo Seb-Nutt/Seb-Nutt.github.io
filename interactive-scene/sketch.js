@@ -126,10 +126,9 @@ function moveBall(){
 
 function calculateVelocity(){
 
-  if (millis()%1000 === 0){
-    change = currentPosition-lastPosition;
-    lastPosition = currentPosition; 
-    currentPosition = ballX;
+  if (millis() > lastSwitch+1){
+    lastSwitch = millis();
+    change = ting;
   }
   console.log(change);
   return change;
