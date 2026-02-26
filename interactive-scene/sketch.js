@@ -61,7 +61,7 @@ function drawNonInteractives(){
   
   //draw the midcourt markings
   stroke('black');
-  stroke(15);
+  strokeWeight(15);
   fill(194,178,128);
   circle(width/2,height-height/8,width/8);
   strokeCap(SQUARE);
