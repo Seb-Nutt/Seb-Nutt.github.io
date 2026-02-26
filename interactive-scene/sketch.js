@@ -30,7 +30,8 @@ let ballYVelocity = 0;
 let ballY;
 let ballRadius;
 let positions = [];
-let change = 0;
+let changeX = 0;
+let changeY = 0;
 let lastPosition = 0;
 let lastSwitch = 0;
 let score = 0;
@@ -124,7 +125,7 @@ function moveBall(){
   
   if (ballIn()){
     
-    ballXVelocity = calculateVelocity();
+    ballXVelocity = calculateVelocity()[0];
     if (!mouseIsPressed){
       ballX += ballXVelocity/10;
     }
@@ -135,12 +136,12 @@ function moveBall(){
 function calculateVelocity(){
 // make a y velocity one
   if (millis() > lastSwitch+100 && ballIn()){
-    change = ballX-lastPosition;
+    changeX = ballX-lastPosition;
     lastPosition = ballX;
     lastSwitch = millis();
   }
-  console.log(change);
-  return change;
+
+  return changeX;
 }
 
 function ballIn(){
