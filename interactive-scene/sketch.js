@@ -13,9 +13,8 @@ function setup() {
     cloudsWidth.push(random(200,400));
     cloudsHeight.push(random(25,100));
     postHeight = height/3;
-    ballX = width/4;
-    ballY = 7*height/8;
-    ballRadius = 25;
+    // ball.x = width/4;
+    // ball.y = 7*height/8;
   }
 }
 
@@ -24,15 +23,20 @@ let cloudsX = [];
 let cloudsY = [];
 let cloudsWidth = [];
 let cloudsHeight = [];
-let ballXVelocity = 0;
-let ballX;
-let ballYVelocity = 0;
-let ballY;
-let ballRadius;
-let positions = [];
-let changeX = 0;
-let changeY = 0;
-let lastPosition = 0;
+let ball = {
+  xVelocity: 0,
+  x: 0,
+  yVelocity: 0,
+  y: 0,
+  radius: 25,
+  changeX: 0,
+  changeY: 0,
+  lastXPosition: 0,
+  lastYPosition: 0,
+  verticalDirection: 1,
+  yShift: 0
+};
+
 let lastSwitch = 0;
 let score = 0;
 
@@ -103,54 +107,78 @@ function drawBall(){
   stroke('black');
   strokeWeight(1);
   fill('orange');
-  circle(ballX, ballY, 2*ballRadius);
-  line(ballX, ballY + ballRadius, ballX, ballY - ballRadius);
-  line(ballX - ballRadius, ballY, ballX + ballRadius, ballY);
-  line(ballX - 7*ballRadius/8, ballY + ballRadius/2, ballX + 7*ballRadius/8, ballY + ballRadius/2);
-  line(ballX - 7*ballRadius/8, ballY - ballRadius/2, ballX + 7*ballRadius/8, ballY - ballRadius/2);
+  circle(ball.x, ball.y, 2*ball.radius);
+  line(ball.x, ball.y + ball.radius, ball.x, ball.y - ball.radius);
+  line(ball.x - ball.radius, ball.y, ball.x + ball.radius, ball.y);
+  line(ball.x - 7*ball.radius/8, ball.y + ball.radius/2, ball.x + 7*ball.radius/8, ball.y + ball.radius/2);
+  line(ball.x - 7*ball.radius/8, ball.y - ball.radius/2, ball.x + 7*ball.radius/8, ball.y - ball.radius/2);
+}
+
+function mouseOnBall(){
+  return dist(mouseX,mouseY,ball.x,ball.y) < 3*ball.radius;
 }
 
 function moveBall(){
-  if (dist(mouseX,mouseY,ballX,ballY) < 3*ballRadius && mouseIsPressed){
-    ballX = mouseX;
-    ballY = mouseY;
+  if (mouseOnBall() && mouseIsPressed){
+    ball.x = mouseX;
+    ball.y = mouseY;
   }
-  if (ballY < height-height/8 && !mouseIsPressed){
-    ballYVelocity += ballY/1000;
-    ballY += ballYVelocity;
-  }
-  else{
-    ballYVelocity = 0;
-  }
+  // if (ball.y < height-height/8 && !mouseIsPressed){
+  //   ball.y += ball.yVelocity;
+  // }
+  // else{
+  //   ball.yVelocity = 0;
+  // }
   
   if (ballIn()){
     
-    ballXVelocity = calculateVelocity()[0];
-    if (!mouseIsPressed){
-      ballX += ballXVelocity/10;
+    ball.xVelocity = calculateVelocity()[0];
+    ball.yVelocity = calculateVelocity()[1];
+    if (!mouseIsPressed || !mouseOnBall()){
+      ball.x += ball.xVelocity/10;
+      ball.y += ball.yVelocity/10 * ball.verticalDirection;
     }
+
+    // bounce ball
+    // if (ball.y > 7*height/8){
+    //   ball.y = 7*height/8;
+    //   ball.yVelocity*= -1;
+    // }
+    ball.xVelocity--;
+    ball.y += ball.yShift/10;
   }
-  ballXVelocity--;
+  
+  if (ball.y < height-height/8 && (!mouseIsPressed || !mouseOnBall())){
+    ball.yShift += 1;
+  }
+  else{
+    ball.yShift = 0;
+    ball.yVelocity = 0;
+  }
 }
 
 function calculateVelocity(){
 // make a y velocity one
   if (millis() > lastSwitch+100 && ballIn()){
-    changeX = ballX-lastPosition;
-    lastPosition = ballX;
+    ball.changeX = ball.x - ball.lastXPosition;
+    ball.lastXPosition = ball.x;
+    ball.changeY = ball.y - ball.lastYPosition;
+    ball.lastYPosition = ball.y;
     lastSwitch = millis();
   }
 
-  return changeX;
+
+
+  return [ball.changeX,ball.changeY];
 }
 
 function ballIn(){
   // return is the ball is in the screen
-  return ballX > 0 && ballX < width;
+  return ball.x > 0 && ball.x < width;
 }
 
 function detectScore(){
-  // if (ballX)
+  // if (ball.x)
 }
 
 function displayScore(){
