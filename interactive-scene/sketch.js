@@ -35,7 +35,8 @@ let ball = {
   lastXPosition: 0,
   lastYPosition: 0,
   verticalDirection: 1,
-  yShift: 0
+  yShift: 0,
+  held: false
 };
 let rim = {
   X1: 0,
@@ -48,7 +49,6 @@ let rim = {
 let lastSwitch = 0;
 let score = 0;
 let scored = false;
-
 
 
 function draw() {
@@ -164,13 +164,14 @@ function drawForegroundRim(){
 
 function mouseOnBall(){
   // return if the cursor is within the range to pick up the ball
-  return dist(mouseX,mouseY,ball.x,ball.y) < 3*ball.RADIUS;
+  return dist(mouseX,mouseY,ball.x,ball.y) < 3*ball.RADIUS + 25;
 }
 
 function moveBall(){
 
   // Let the player drag the ball
   if (mouseOnBall() && mouseIsPressed){
+    ball.held = true;
     ball.x = mouseX;
     ball.y = mouseY;
 
@@ -181,6 +182,18 @@ function moveBall(){
     scored = false;
   }
   
+  if (mouseIsPressed && ball.held){
+    // stop the ball from slipping out of the cursor if
+    ball.x = mouseX;
+    ball.y = mouseY;
+  }
+
+  if ((ball.held && !mouseOnBall && mouseIsPressed) || !mouseIsPressed){
+    // make sure that if you click off the ball it doesnt teleport to the mouse
+    ball.held = false;
+  }
+
+
   if (ballIn()){
     
     //get he units per second for the x and y values
@@ -193,7 +206,7 @@ function moveBall(){
     }
 
     // Move the ball if its isnt being held
-    if (!mouseIsPressed || !mouseOnBall()){
+    if (!ball.held){
       ball.x += ball.xVelocity/10;
       ball.y += ball.yVelocity/10 * ball.verticalDirection;
     }
@@ -208,7 +221,7 @@ function moveBall(){
     }
 
     // update the speeds to create a drag and gravity system
-    ball.xVelocity -= 0.5;
+    ball.xVelocity -= 0.1;
     ball.y += ball.yShift/10;
   }
 }
