@@ -11,38 +11,60 @@ let playerSpeech;
 let speech = new p5.Speech();
 let speechRec;
 let listening;
-
+let humanSpeech = 'hi';
+let rm = RiTa.markov({disableInputChecks: true});
+let textAdded = false;
 
 function setup() {
   createCanvas(windowWidth, windowHeight);
-  speechRec = new p5.SpeechRec('en-US', gotSpeech);
-  speechRec.start();
+  speechRec = new p5.SpeechRec('en-US'); //gotSpeech);
 
-  function gotSpeech(){
-    console.log(speechRec);
-  }
+  // function gotSpeech(){
+  //   humanSpeech = speechRec.ResultString;
+  // }
 
 }
 
 function draw() {
   background(220);
   listen();
-  speak();
-  console.log(speechRec.resultString);
+  humanSpeech = speechRec.resultString;
+  processSpeech();
+
+  if (!listening){
+    speak();
+  }
 }
 
 function speak(){
-
+  text(humanSpeech,width/2,height/2);
 }
 
 function listen(){
-  //listen if the alt key is held down
-  if (!keyIsDown(18)){
+  //listen if the 'v' key is held down
+  if (!keyIsDown(86)){
     speechRec.stop();
     listening = false;
+    textAdded++;
   }
   else if (!listening){
     speechRec.start();
     listening = true;
+    textAdded = 0;
+  }
+
+}
+
+function processSpeech(){
+  try{
+    // updating late rightnow - fix tommorrow
+    if (textAdded === 1 && listening === false){
+      rm.addText(humanSpeech);
+      // console.log(rm.generate(2));
+      textAdded++;
+    }
+  }
+  catch{
+    console.log('error');
   }
 }
