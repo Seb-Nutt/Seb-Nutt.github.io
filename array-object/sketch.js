@@ -14,6 +14,7 @@ let listening;
 let humanSpeech = 'hi';
 let rm = RiTa.markov({disableInputChecks: true});
 let textAdded = false;
+let processed = true;
 
 function setup() {
   createCanvas(windowWidth, windowHeight);
@@ -27,13 +28,16 @@ function setup() {
 
 function draw() {
   background(220);
-  listen();
-  humanSpeech = speechRec.resultString;
-  processSpeech();
-
-  if (!listening){
-    speak();
+  if (processed){
+    listen();
+    humanSpeech = speechRec.resultString;
   }
+  
+
+  if (!processed){
+    processSpeech();
+  }
+  speak();
 }
 
 function speak(){
@@ -45,12 +49,11 @@ function listen(){
   if (!keyIsDown(86)){
     speechRec.stop();
     listening = false;
-    textAdded++;
   }
-  else if (!listening){
+  else if (!listening && keyIsDown(86)){
     speechRec.start();
     listening = true;
-    textAdded = 0;
+    processed = false;
   }
 
 }
@@ -58,13 +61,14 @@ function listen(){
 function processSpeech(){
   try{
     // updating late rightnow - fix tommorrow
-    if (textAdded === 1 && listening === false){
+    if (!processed){
       rm.addText(humanSpeech);
       // console.log(rm.generate(2));
-      textAdded++;
+      processed = true;
     }
   }
   catch{
     console.log('error');
   }
+
 }
