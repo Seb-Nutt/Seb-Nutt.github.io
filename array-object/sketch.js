@@ -7,14 +7,15 @@
 
 // 3d envirement that allows you to speak to a thing that will repeat what yu said back to it via text to speech
 
-let playerSpeech;
 let speech = new p5.Speech();
 let speechRec;
 let listening;
 let humanSpeech = 'hi';
-let rm = RiTa.markov({disableInputChecks: true});
+let rm = RiTa.markov(5);
+rm.untokenize;
 let textAdded = false;
 let processed = true;
+let generated;
 
 function setup() {
   createCanvas(windowWidth, windowHeight);
@@ -60,15 +61,16 @@ function listen(){
 
 function processSpeech(){
   try{
-    // updating late rightnow - fix tommorrow
+    // updating late rightnow - fix tommorrow - look into speechs callback system
     if (!processed){
       rm.addText(humanSpeech);
-      // console.log(rm.generate(2));
-      processed = true;
+      generated = rm.generate();
+      
     }
   }
   catch{
     console.log('error');
   }
-
+  processed = true;
+  console.log(generated);
 }
