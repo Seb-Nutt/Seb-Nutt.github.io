@@ -16,6 +16,12 @@ rm.untokenize;
 let textAdded = false;
 let processed = true;
 let generated;
+let hamlet;
+
+function preload(){
+  // attempting to load halet to give the model something to train off of
+  hamlet = loadStrings('\GitHub\Seb-Nutt.github.io\array-object\hamlet.txt');
+}
 
 function setup() {
   createCanvas(windowWidth, windowHeight);
@@ -24,20 +30,17 @@ function setup() {
   // function gotSpeech(){
   //   humanSpeech = speechRec.ResultString;
   // }
-
+  speechRec.onResult = processSpeech;
 }
 
 function draw() {
   background(220);
-  if (processed){
-    listen();
-    humanSpeech = speechRec.resultString;
-  }
-  
 
-  if (!processed){
-    processSpeech();
-  }
+  listen();
+  
+  // if (!processed){
+  //   processSpeech();
+  // }
   speak();
 }
 
@@ -57,20 +60,21 @@ function listen(){
     processed = false;
   }
 
+
 }
 
 function processSpeech(){
   try{
-    // updating late rightnow - fix tommorrow - look into speechs callback system
-    if (!processed){
-      rm.addText(humanSpeech);
-      generated = rm.generate();
-      
-    }
+    humanSpeech = speechRec.resultString;
+    rm.addText(humanSpeech);
+    generated = rm.generate(10);
+       
   }
+  
   catch{
     console.log('error');
   }
   processed = true;
+  
   console.log(generated);
 }
