@@ -10,26 +10,32 @@
 let speech = new p5.Speech();
 let speechRec;
 let listening;
-let humanSpeech = 'hi';
-let rm = RiTa.markov(5);
-rm.untokenize;
+let humanSpeech = 'Hold V to speak';
+let rm = RiTa.markov(2, {trace: false}, {disableInputChecks: true});
+// rm.untokenize;
 let textAdded = false;
 let processed = true;
 let generated;
 let hamlet;
+let trainingWords = ['is','the','or'];
 
 function preload(){
-  // attempting to load halet to give the model something to train off of
-  hamlet = loadStrings('\GitHub\Seb-Nutt.github.io\array-object\hamlet.txt');
+  // attempting to load hamlet to give the model something to train off of
+  hamlet = loadStrings('/hamlet.txt');
+  
 }
 
 function setup() {
   createCanvas(windowWidth, windowHeight);
   speechRec = new p5.SpeechRec('en-US'); //gotSpeech);
 
-  // function gotSpeech(){
-  //   humanSpeech = speechRec.ResultString;
-  // }
+  while (trainingWords.length < 1000){
+    trainingWords.push(RiTa.randomWord());
+  }
+
+  // rm.addText(hamlet);
+  rm.addText(trainingWords);
+
   speechRec.onResult = processSpeech;
 }
 
@@ -37,15 +43,12 @@ function draw() {
   background(220);
 
   listen();
-  
-  // if (!processed){
-  //   processSpeech();
-  // }
-  speak();
+  displayText();
 }
 
 function speak(){
-  text(humanSpeech,width/2,height/2);
+  // use text to speech to speak the generated text
+  speech.speak(generated);
 }
 
 function listen(){
@@ -64,17 +67,19 @@ function listen(){
 }
 
 function processSpeech(){
-  try{
-    humanSpeech = speechRec.resultString;
-    rm.addText(humanSpeech);
-    generated = rm.generate(10);
-       
-  }
-  
-  catch{
-    console.log('error');
-  }
+  humanSpeech = speechRec.resultString;
+  rm.addText(humanSpeech);
+  generated = rm.generate();
+
   processed = true;
   
   console.log(generated);
+
+  speak();
+}
+
+function displayText(){
+  text(humanSpeech,width/2,height/2);
+
+  text(generated, width/2,height/2 + 50);
 }
