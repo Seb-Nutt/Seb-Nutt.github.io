@@ -11,13 +11,14 @@ let speech = new p5.Speech();
 let speechRec;
 let listening;
 let humanSpeech = 'Hold V to speak';
-let rm = RiTa.markov(2, {trace: false}, {disableInputChecks: true});
+let rm = RiTa.markov(2,{trace: false}, {disableInputChecks: true});
 // rm.untokenize;
 let textAdded = false;
 let processed = true;
 let generated;
 let hamlet;
 let trainingWords = ['is','the','or'];
+let result;
 
 function preload(){
   // attempting to load hamlet to give the model something to train off of
@@ -33,8 +34,8 @@ function setup() {
     trainingWords.push(RiTa.randomWord());
   }
 
-  // rm.addText(hamlet);
-  rm.addText(trainingWords);
+  rm.addText(hamlet);
+  // rm.addText(trainingWords);
 
   speechRec.onResult = processSpeech;
 }
@@ -62,14 +63,17 @@ function listen(){
     listening = true;
     processed = false;
   }
-
-
 }
 
 function processSpeech(){
   humanSpeech = speechRec.resultString;
+  // humanSpeech = humanSpeech.split(' ');
+
   rm.addText(humanSpeech);
-  generated = rm.generate();
+  generated = [humanSpeech];
+  for (let i = 0; i < 9; i++){
+    generated.push(rm.completions(generated[i])[0]);
+  }
 
   processed = true;
   
@@ -79,7 +83,9 @@ function processSpeech(){
 }
 
 function displayText(){
-  text(humanSpeech,width/2,height/2);
 
-  text(generated, width/2,height/2 + 50);
+  if (humanSpeech !== 'Hold V to Speak'){
+    text(humanSpeech,width/2,height/2);
+    text(generated, width/2,height/2 + 50);
+  }
 }
