@@ -1,29 +1,30 @@
 // Arrays and object notation
 // Sebastian Nutt
-// March 5th 2026
+// March 18th 2026
 //
 // Extra for Experts:
-// - describe what you did to take this project "above and beyond"
+// - I used multiple additional libraries and whent through the process of bug-testing and using them in tandem to create my product which incorpertates both. 
 
 
 //create the object for replying via text to speech
 let speech = new p5.Speech();
 
 //create the response model
-let rm = RiTa.markov(2,{trace: false}, {disableInputChecks: true});
+let ritaModel = RiTa.markov(2,{trace: false}, {disableInputChecks: true});
 
 let speechRec;
 let listening;
 // display the prompt to speak initially before chagning to display the users input
 let humanSpeech = 'Hold V to speak';
-let generated;
+let generated = '';
 let hamlet;
-let textBox = {
+let textBoxOutput = {
   x: 0,
   y: 0,
   boxWidth: 0,
   BOXHEIGHT: 50
 };
+let textBoxInput = structuredClone(textBoxOutput);
 
 function preload(){
   // load hamlet to give the model something to train off of
@@ -41,21 +42,23 @@ function setup() {
   textAlign('center');
 
   //add hamlet into the AI's processing
-  rm.addText(hamlet);
+  ritaModel.addText(hamlet);
 
-  textBox.y = height/2-25;
+  // set the proper heights for the textboxes
+  textBoxOutput.y = height/2-25;
+  textBoxInput.y =  height/6-25;
 
   //create a callback to run the speech recognition when the speech recognition gets a result
   speechRec.onResult = processSpeech;
 }
 
 function draw() {
-  background(220);
+  background('navy');
 
-  //constantly listen and dsplay text
+  //constantly listen and display text
   listen();
+  drawTextBoxes();
   displayText();
-  drawTextBox();
 }
 
 function speak(){
@@ -80,12 +83,12 @@ function processSpeech(){
   humanSpeech = speechRec.resultString;
 
   // add the users input into the model
-  rm.addText(humanSpeech);
+  ritaModel.addText(humanSpeech);
 
   // create the output in the form a list which predicts the next word based on the latest added word
   generated = [humanSpeech];
   while (generated[generated.length-1] !== '.' || generated.length === 1){
-    generated.push(random(rm.completions(generated[generated.length-1])));
+    generated.push(random(ritaModel.completions(generated[generated.length-1])));
   }
 
   // remove the initial human input to properly format the response
@@ -98,19 +101,31 @@ function processSpeech(){
   speak();
 }
 
-function displayText(){
-  //display both the users input and the Models output
-  text(humanSpeech,width/2,height/6);
-  text(generated, width/2,height/2 + 50);
-}
-
-function drawTextBox(){
+function drawTextBoxes(){
   fill(100);
   try{
-    textBox.boxWidth = generated.length*10;
-    textBox.x = width/2 - generated.length;
+    textBoxOutput.boxWidth = generated.length*6;
+    textBoxOutput.x = width/2 - generated.length*3;
+    textBoxInput.boxWidth = humanSpeech.length*6;
+    textBoxInput.x = width/2 - humanSpeech.length*3;
   }
-  catch{
-    square(textBox.x,height/2-50,textBox.boxWidth,textBox.BOXHEIGHT);
+  finally{
+    fill('black');
+    stroke('white');
+    rect(textBoxOutput.x,textBoxOutput.y,textBoxOutput.boxWidth,textBoxOutput.BOXHEIGHT);
+
+    fill('white');
+    stroke('black');
+    rect(textBoxInput.x,textBoxInput.y,textBoxInput.boxWidth,textBoxInput.BOXHEIGHT);
   }
 }
+
+function displayText(){
+  //display both the users input and the Models output
+  fill('black');
+  text(humanSpeech,width/2,height/6);
+
+  fill('white')
+  text(generated, width/2,height/2);
+}
+
