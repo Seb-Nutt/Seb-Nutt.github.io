@@ -28,7 +28,7 @@ let textBoxInput = structuredClone(textBoxOutput);
 
 function preload(){
   // load hamlet to give the model something to train off of
-  hamlet = loadStrings('hamlet.txt');
+  hamlet = loadStrings('hamlet/hamlet.txt');
   
 }
 
