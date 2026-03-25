@@ -8,8 +8,8 @@ let white = false;
 
 function setup() {
   createCanvas(windowWidth, windowHeight);
-  rows = Math.floor(height/CELL_SIZE);
-  cols = Math.floor(width/CELL_SIZE);
+  rows = Math.floor(width/CELL_SIZE);
+  cols = Math.floor(height/CELL_SIZE);
   grid = generateGrid(cols,rows);
 }
 

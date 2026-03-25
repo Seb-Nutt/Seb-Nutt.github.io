@@ -45,20 +45,27 @@ function setup() {
       }
     }
 
-    mouseOn (){
-      // chekc if the mosue is hovering it
+    mouseOn (buttonColor){
+      if (mouseX > this.x && mouseX < this.x + this.buttonWidth && mouseY > this.y && mouseY < this.y + this.buttonHeight){
+        this.buttonColor = 20;
+        return true;
+      }
+      else{
+        return false;
+      }
     }
   };
 
-  easyButton = new difficultyButton("Easy", [0,255,0], height/4 - height/16);
-  mediumButton = new difficultyButton("Medium", [255,255,0], height/2 - height/16);
-  hardButton = new difficultyButton("Hard", [255,0,0], 3*height/4 - height/16);
+  easyButton = new difficultyButton("Easy", 255, height/4 - height/16);
+  mediumButton = new difficultyButton("Medium", 155, height/2 - height/16);
+  hardButton = new difficultyButton("Hard", 55, 3*height/4 - height/16);
 
 }
 
 function draw() {
   background(220);
   displayDifficultyButtons();
+  detectHovering();
 
 }
 
@@ -74,6 +81,13 @@ function displayDifficultyButtons(){
 
 function mousePressed(){
   if (easyButton.mouseOn()){
-    
+    difficulty = 1;
+    console.log(difficulty);
   }
+}
+
+function detectHovering(){
+  easyButton.mouseOn(easyButton.buttonColor);
+  mediumButton.mouseOn(easyButton.buttonColor);
+  hardButton.mouseOn(easyButton.buttonColor);
 }
