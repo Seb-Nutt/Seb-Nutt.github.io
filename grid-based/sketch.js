@@ -5,30 +5,32 @@
 // Extra for Experts:
 // - describe what you did to take this project "above and beyond"
 
-let grid;
-// let difficultyButton = {
-//   x: 0,
-//   y: 0,
-//   buttonLength: 0,
-//   buttonHeight: 0,
-//   rgb: [0,0,0]
-// };
-
-
-
 let difficultySelected = false;
 let easyButton;
 let mediumButton;
 let hardButton;
-
+let grid;
+let difficulty = 0;
+let tileSize = 100;
+const EASY = 1;
+const MEDIUM = 2;
+const HARD = 3;
+const DEFAULT_SIZE = 8;
+const SAFE = 0;
+const MINE = -1;
+let gridSize;
 
 function setup() {
-  textAlign('center');
+  textAlign(CENTER);
   createCanvas(windowWidth, windowHeight);
+
+  //create the class used for the difficulty buttons
   class difficultyButton {
     constructor(difficulty, buttonColor, y){
       this.difficulty = difficulty;
-      this.buttonColor = buttonColor;
+      this.hoveredColor = buttonColor-20;
+      this.defaultColor = buttonColor;
+      this.currentColor = buttonColor;
       this.buttonWidth = width/3;
       this.buttonHeight = height/16;
       this.x = width/3;
@@ -37,7 +39,7 @@ function setup() {
 
     drawButton (){
       if (!difficultySelected){
-        fill(this.buttonColor);
+        fill(this.currentColor);
         rect(this.x,this.y,this.buttonWidth,this.buttonHeight);
         fill('black');
         textSize(20);
@@ -45,12 +47,13 @@ function setup() {
       }
     }
 
-    mouseOn (buttonColor){
+    mouseOn (){
       if (mouseX > this.x && mouseX < this.x + this.buttonWidth && mouseY > this.y && mouseY < this.y + this.buttonHeight){
-        this.buttonColor = 20;
+        this.currentColor = this.hoveredColor;
         return true;
       }
       else{
+        this.currentColor = this.defaultColor;
         return false;
       }
     }
@@ -66,24 +69,51 @@ function draw() {
   background(220);
   displayDifficultyButtons();
   detectHovering();
-
+  displayGrid();
 }
 
-function createGrid(){
 
-}
 
 function displayDifficultyButtons(){
-  easyButton.drawButton();
-  mediumButton.drawButton();
-  hardButton.drawButton();
+  if (!difficultySelected){
+    easyButton.drawButton();
+    mediumButton.drawButton();
+    hardButton.drawButton();
+  }
 }
 
 function mousePressed(){
-  if (easyButton.mouseOn()){
-    difficulty = 1;
-    console.log(difficulty);
+  if (!difficultySelected){
+    if (easyButton.mouseOn()){
+      difficulty = EASY;
+      difficultySelected = true;
+      grid = createGrid();
+    }
+    else if (mediumButton.mouseOn()){
+      difficulty = MEDIUM;
+      difficultySelected = true;
+      grid = createGrid();
+    }
+    else if (hardButton.mouseOn()){
+      difficulty = HARD;
+      difficultySelected = true;
+      grid = createGrid();
+    }
+    gridSize = DEFAULT_SIZE*difficulty;
   }
+}
+
+function createGrid(){
+  let tempGrid = [];
+  tileSize = 100/difficulty;
+  for (let rows = 0; rows < gridSize; rows++){
+    tempGrid.push([]);
+    for (let cols = 0; cols < gridSize; cols++){
+      tempGrid[rows].push(SAFE);
+    }
+  }
+  console.log(tempGrid);
+  return tempGrid;
 }
 
 function detectHovering(){
@@ -91,3 +121,13 @@ function detectHovering(){
   mediumButton.mouseOn(easyButton.buttonColor);
   hardButton.mouseOn(easyButton.buttonColor);
 }
+
+function displayGrid(){
+  fill('White');
+  for (let x = 0; x < gridSize; x++){
+    for (let y = 0; y < gridSize; y++){
+      // text(grid[x][y], x*tileSize + tileSize/2, y*tileSize + tileSize/2);
+      square(x*tileSize, y*tileSize, tileSize);
+    }
+  }
+};
