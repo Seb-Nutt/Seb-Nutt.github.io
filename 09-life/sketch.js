@@ -1,7 +1,7 @@
 // game of life
 
 const CELL_SIZE = 20;
-const RENDER_ON_FRAME = 3;
+const RENDER_ON_FRAME = 1;
 const DEAD_CELL = 0;
 const ALIVE_CELL = 1;
 let autoPlayIsOn = true;
@@ -115,10 +115,10 @@ function displayGrid() {
   for (let y = 0; y < rows; y++) {
     for (let x = 0; x < cols; x++) {
       if (grid[y][x] === DEAD_CELL) {
-        fill("white");
+        fill("black");
       }
       if (grid[y][x] === ALIVE_CELL) {
-        fill("black");
+        fill("white");
       }
       square(x * CELL_SIZE, y * CELL_SIZE, CELL_SIZE);
     }

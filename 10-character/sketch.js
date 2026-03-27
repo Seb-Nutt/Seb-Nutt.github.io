@@ -119,8 +119,6 @@ function keyPressed() {
 }
 
 function movePlayer(x,y){
-
-
   if (x >= 0 && x < rows && y >= 0 && y < cols && grid[y][x] !== SOLID){
     grid[thePlayer.y][thePlayer.x] = OPEN_TILE;
     thePlayer.x = x;
