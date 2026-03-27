@@ -96,15 +96,16 @@ function mousePressed(){
     }
     else if (hardButton.mouseOn()){
       difficulty = HARD;
-      difficultySelected = true;
       grid = createGrid();
     }
-    gridSize = DEFAULT_SIZE*difficulty;
+
   }
 }
 
 function createGrid(){
   let tempGrid = [];
+  difficultySelected = true;
+  gridSize = DEFAULT_SIZE*difficulty;
   tileSize = 100/difficulty;
   for (let rows = 0; rows < gridSize; rows++){
     tempGrid.push([]);
