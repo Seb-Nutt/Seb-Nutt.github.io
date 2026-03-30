@@ -1,4 +1,4 @@
-// Grid assignement (2d arrays)
+// Grid assignment (2d arrays)
 // Your Name
 // Date
 //Possibly minesweeper
@@ -65,6 +65,7 @@ function setup() {
     }
   };
 
+  //create the three difficulty buttons
   easyButton = new difficultyButton("Easy", 255, height/4 - height/16);
   mediumButton = new difficultyButton("Medium", 155, height/2 - height/16);
   hardButton = new difficultyButton("Hard", 55, 3*height/4 - height/16);
@@ -81,6 +82,7 @@ function draw() {
 
 function displayDifficultyButtons(){
   if (!difficultySelected){
+    // is the difficulty has not been selected then display the buttons
     easyButton.drawButton();
     mediumButton.drawButton();
     hardButton.drawButton();
@@ -108,8 +110,8 @@ function mousePressed(){
   else{
     xTile = Math.floor((mouseX-xOffset)/tileSize);
     yTile = Math.floor((mouseY-yOffset)/tileSize);
-    if (bombGrid[xTile,yTile] !== MINE){
-      grid[xTile,yTile] = getNeighbouringBombs(xTile,yTile);
+    if (bombGrid[xTile][yTile] !== MINE){
+      bombGrid[xTile][yTile] = getNeighbouringBombs(xTile,yTile);
     }
   }
 }
@@ -141,13 +143,14 @@ function detectHovering(){
 function displayGrid(){
   for (let x = 0; x < gridSize; x++){
     for (let y = 0; y < gridSize; y++){
-
       fill('White');
-      square(x*tileSize + xOffset, y*tileSize + yOffset, tileSize);
-      
       if (bombGrid[x][y] === SAFE){
+        fill(100);
+      }
+      square(x*tileSize + xOffset, y*tileSize + yOffset, tileSize);
+      if (bombGrid[x][y] !== SAFE){
         fill(0);
-        text(grid[x][y], x*tileSize + tileSize/2 + xOffset, y*tileSize + tileSize/2 + yOffset);
+        text(bombGrid[x][y], x*tileSize + tileSize/2 + xOffset, y*tileSize + tileSize/2 + yOffset);
       }
     }
   }
@@ -158,6 +161,7 @@ function generateBombs(){
   for (let rows = 0; rows < gridSize; rows++){
     tempGrid.push([]);
     for (let cols = 0; cols < gridSize; cols++){
+      // add mines at a 20% chance
       if (random(100) < 20){
         tempGrid[rows].push(MINE);
       }
@@ -169,15 +173,16 @@ function generateBombs(){
   return tempGrid;
 }
 
-function getNeighbouringBombs(x,y){
-  // not wokring right now
+function getNeighbouringBombs(_x,_y){
   let neighbouringMines = 0;
   for (let i = -1; i < 2; i++){
     for (let j = -1; j < 2; j++){
-      if (bombGrid[x + i][y + j] === MINE){
+      // add checking for edgecases
+      if (bombGrid[_x + i][_y + j] === MINE){
         neighbouringMines++;
       }
     }
   }
+  console.log(neighbouringMines);
   return neighbouringMines;
 }
