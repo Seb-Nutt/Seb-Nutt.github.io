@@ -9,7 +9,7 @@ let difficultySelected = false;
 let easyButton;
 let mediumButton;
 let hardButton;
-let grid;
+let coveringGrid;
 let difficulty = 0;
 let tileSize = 100;
 const EASY = 1;
@@ -25,6 +25,8 @@ let yOffset;
 let bombGrid = [];
 let xTile;
 let yTile;
+const COVERING_TILE_ON = 1;
+const COVERING_TILE_OFF = 0;
 
 function setup() {
   textAlign(CENTER);
@@ -75,7 +77,7 @@ function draw() {
   background(220);
   displayDifficultyButtons();
   detectHovering();
-  displayGrid();
+  displayGrids();
 }
 
 
@@ -94,25 +96,24 @@ function mousePressed(){
     if (easyButton.mouseOn()){
       difficulty = EASY;
       difficultySelected = true;
-      grid = createGrid();
+      coveringGrid = createGrid();
     }
     else if (mediumButton.mouseOn()){
       difficulty = MEDIUM;
       difficultySelected = true;
-      grid = createGrid();
+      coveringGrid = createGrid();
     }
     else if (hardButton.mouseOn()){
       difficulty = HARD;
-      grid = createGrid();
+      coveringGrid = createGrid();
     }
   }
 
   else{
     xTile = Math.floor((mouseX-xOffset)/tileSize);
     yTile = Math.floor((mouseY-yOffset)/tileSize);
-    if (bombGrid[xTile][yTile] !== MINE){
-      bombGrid[xTile][yTile] = getNeighbouringBombs(xTile,yTile);
-    }
+    coveringGrid[xTile][yTile] = toggleCoveringTile(xTile,yTile);
+    bombGrid[xTile][yTile] = getNeighbouringBombs(xTile, yTile);
   }
 }
 
@@ -127,7 +128,7 @@ function createGrid(){
   for (let rows = 0; rows < gridSize; rows++){
     tempGrid.push([]);
     for (let cols = 0; cols < gridSize; cols++){
-      tempGrid[rows].push(SAFE);
+      tempGrid[rows].push(COVERING_TILE_ON);
     }
   }
   bombGrid = generateBombs();
@@ -140,17 +141,31 @@ function detectHovering(){
   hardButton.mouseOn(easyButton.buttonColor);
 }
 
-function displayGrid(){
+function displayGrids(){
   for (let x = 0; x < gridSize; x++){
     for (let y = 0; y < gridSize; y++){
-      fill('White');
-      if (bombGrid[x][y] === SAFE){
-        fill(100);
+      //hidden grid
+
+      //color white if its safe and red if its a mine
+      if (bombGrid[x][y] !== MINE){
+        fill(255);
       }
+      else{
+        fill('red');
+      }
+
+      //draw the tiles
       square(x*tileSize + xOffset, y*tileSize + yOffset, tileSize);
       if (bombGrid[x][y] !== SAFE){
         fill(0);
         text(bombGrid[x][y], x*tileSize + tileSize/2 + xOffset, y*tileSize + tileSize/2 + yOffset);
+      }
+
+      //covering grid
+
+      if (coveringGrid[x][y] === COVERING_TILE_ON){
+        fill(200);
+        square(x*tileSize + xOffset, y*tileSize + yOffset, tileSize);
       }
     }
   }
@@ -175,14 +190,17 @@ function generateBombs(){
 
 function getNeighbouringBombs(_x,_y){
   let neighbouringMines = 0;
-  for (let i = -1; i < 2; i++){
-    for (let j = -1; j < 2; j++){
-      // add checking for edgecases
-      if (bombGrid[_x + i][_y + j] === MINE){
+  for (let i = -1; i <= 1; i++){
+    for (let j = -1; j <= 1; j++){
+      if (_x + i >= 0 && _x + i <= gridSize-1 && bombGrid[_x + i][_y + j] === MINE){
         neighbouringMines++;
       }
     }
   }
   console.log(neighbouringMines);
   return neighbouringMines;
+}
+
+function toggleCoveringTile(_x,_y){
+  coveringGrid[_x][_y] = COVERING_TILE_OFF;
 }

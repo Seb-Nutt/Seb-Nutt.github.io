@@ -58,11 +58,12 @@ function mousePressed(){
   let col = Math.floor(mouseY/CELL_SIZE);
   let row = Math.floor(mouseX/CELL_SIZE);
 
-  toggleCell(col,row);
-  toggleCell(col+1,row);
-  toggleCell(col-1,row);
-  toggleCell(col,row+1);
-  toggleCell(col,row-1);
+  for (let i = -1; i <= 1; i++){
+    for (let j = -1; j <= 1; j++){
+      toggleCell(col + i ,row + j);
+    }
+  }
+  
 }
 
 function toggleCell(col,row){
