@@ -27,6 +27,7 @@ let xTile;
 let yTile;
 const COVERING_TILE_ON = 1;
 const COVERING_TILE_OFF = 0;
+const MINE_CHANCE = 5;
 
 function setup() {
   textAlign(CENTER);
@@ -110,10 +111,23 @@ function mousePressed(){
   }
 
   else{
+    // get the tile that the mouse is on
     xTile = Math.floor((mouseX-xOffset)/tileSize);
     yTile = Math.floor((mouseY-yOffset)/tileSize);
+
+    //toggle the clicked tile
     coveringGrid[xTile][yTile] = toggleCoveringTile(xTile,yTile);
-    bombGrid[xTile][yTile] = getNeighbouringBombs(xTile, yTile);
+
+    // if it isnt a mine then display the amount of neighbouring mines
+    if (bombGrid[xTile][yTile] !== MINE){
+      neighbouringMines = getNeighbouringBombs(xTile, yTile);
+      bombGrid[xTile][yTile] = neighbouringMines;
+
+      //if it has 0 nearby then toggle all neighbouring tiles
+      if (neighbouringMines === 0){
+        toggleChainedZeroes(xTile, yTile);
+      }
+    }
   }
 }
 
@@ -176,8 +190,8 @@ function generateBombs(){
   for (let rows = 0; rows < gridSize; rows++){
     tempGrid.push([]);
     for (let cols = 0; cols < gridSize; cols++){
-      // add mines at a 20% chance
-      if (random(100) < 20){
+      // add mines at a set chance
+      if (random(100) < MINE_CHANCE){
         tempGrid[rows].push(MINE);
       }
       else{
@@ -197,10 +211,22 @@ function getNeighbouringBombs(_x,_y){
       }
     }
   }
-  console.log(neighbouringMines);
   return neighbouringMines;
 }
 
 function toggleCoveringTile(_x,_y){
   coveringGrid[_x][_y] = COVERING_TILE_OFF;
+}
+
+function toggleChainedZeroes(_x,_y){
+  for (let i = -1; i < 2; i++){
+    for (let j = -1; j < 2; j++){
+      coveringGrid[_x + i][_y + j] = toggleCoveringTile(_x + i, _y + j);
+      neighbouringMines = getNeighbouringBombs(_x + i, _y + j);
+      bombGrid[_x + i][_y + j] = neighbouringMines; 
+      if (neighbouringMines === 0 && _x + i >= 1 && _x + i < gridSize && _y + j >= 1 && _y + j < gridSize){
+        toggleChainedZeroes(_x + i, _y + i);
+      }
+    }
+  }
 }
