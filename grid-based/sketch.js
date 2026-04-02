@@ -28,6 +28,7 @@ let yTile;
 const COVERING_TILE_ON = 1;
 const COVERING_TILE_OFF = 0;
 const MINE_CHANCE = 5;
+let chainedTiles;
 
 function setup() {
   textAlign(CENTER);
@@ -111,9 +112,7 @@ function mousePressed(){
   }
 
   else{
-    // get the tile that the mouse is on
-    xTile = Math.floor((mouseX-xOffset)/tileSize);
-    yTile = Math.floor((mouseY-yOffset)/tileSize);
+    getMouseTile();
 
     //toggle the clicked tile
     coveringGrid[xTile][yTile] = toggleCoveringTile(xTile,yTile);
@@ -125,6 +124,7 @@ function mousePressed(){
 
       //if it has 0 nearby then toggle all neighbouring tiles
       if (neighbouringMines === 0){
+        chainedTiles = 0;
         toggleChainedZeroes(xTile, yTile);
       }
     }
@@ -206,9 +206,10 @@ function getNeighbouringBombs(_x,_y){
   let neighbouringMines = 0;
   for (let i = -1; i <= 1; i++){
     for (let j = -1; j <= 1; j++){
-      if (_x + i >= 0 && _x + i <= gridSize-1 && bombGrid[_x + i][_y + j] === MINE){
+      if (_x + i >= 0 && _x + i <= gridSize-1 && _y + j >= 0 && _y + j <= gridSize - 1 && bombGrid[_x + i][_y + j] === MINE){
         neighbouringMines++;
       }
+      // maybe check if its empty here to create the flooding system
     }
   }
   return neighbouringMines;
@@ -221,12 +222,28 @@ function toggleCoveringTile(_x,_y){
 function toggleChainedZeroes(_x,_y){
   for (let i = -1; i < 2; i++){
     for (let j = -1; j < 2; j++){
+      if (neighbouringMines === 0 && _x + i > 0 && _x + i < gridSize-1 && _y + j > 0 && _y + j < gridSize-1 && coveringGrid[_x + i][_y + j] === COVERING_TILE_ON){
+        chainedTiles++;
+        toggleChainedZeroes(_x + i, _y + j);
+      }
       coveringGrid[_x + i][_y + j] = toggleCoveringTile(_x + i, _y + j);
       neighbouringMines = getNeighbouringBombs(_x + i, _y + j);
       bombGrid[_x + i][_y + j] = neighbouringMines; 
-      if (neighbouringMines === 0 && _x + i >= 1 && _x + i < gridSize && _y + j >= 1 && _y + j < gridSize){
-        toggleChainedZeroes(_x + i, _y + i);
-      }
+      console.log(_x + i, _y + j);
     }
   }
+  return;
+}
+
+function keyPressed(){
+  if (key === 'e'){
+    getMouseTile();
+  }
+
+}
+
+function getMouseTile(){
+  // get the tile that the mouse is on
+  xTile = Math.floor((mouseX-xOffset)/tileSize);
+  yTile = Math.floor((mouseY-yOffset)/tileSize);
 }
