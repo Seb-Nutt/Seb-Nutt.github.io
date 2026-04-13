@@ -5,7 +5,11 @@
 // Extra for Experts:
 // - describe what you did to take this project "above and beyond"
 
-let difficultySelected = false;
+const SELECTING_DIFFICULTY = 0;
+const PLAYING = 1;
+const WIN = 2;
+const LOSS = 3;
+let gameState = SELECTING_DIFFICULTY;
 let easyButton;
 let mediumButton;
 let hardButton;
@@ -16,8 +20,9 @@ const EASY = 1;
 const MEDIUM = 2;
 const HARD = 3;
 const DEFAULT_SIZE = 8;
-const SAFE = 0;
+const EMPTY = 0;
 const MINE = -1;
+const FLAG = -2;
 let gridSize;
 let gridLength;
 let xOffset;
@@ -27,8 +32,14 @@ let xTile;
 let yTile;
 const COVERING_TILE_ON = 1;
 const COVERING_TILE_OFF = 0;
-const MINE_CHANCE = 5;
+const MINE_CHANCE = 10;
 let chainedTiles;
+let tileColors = [[78,159,229],[125, 192, 121], [255,47,0], [127,0,255], [108,20,19]];
+let flagImg;
+
+function preload(){
+  flagImg = loadImage("images/flag.png");
+}
 
 function setup() {
   textAlign(CENTER);
@@ -48,7 +59,7 @@ function setup() {
     }
 
     drawButton (){
-      if (!difficultySelected){
+      if (gameState === SELECTING_DIFFICULTY){
         fill(this.currentColor);
         rect(this.x,this.y,this.buttonWidth,this.buttonHeight);
         fill('black');
@@ -85,7 +96,7 @@ function draw() {
 
 
 function displayDifficultyButtons(){
-  if (!difficultySelected){
+  if (gameState === SELECTING_DIFFICULTY){
     // is the difficulty has not been selected then display the buttons
     easyButton.drawButton();
     mediumButton.drawButton();
@@ -94,7 +105,7 @@ function displayDifficultyButtons(){
 }
 
 function mousePressed(){
-  if (!difficultySelected){
+  if (gameState === SELECTING_DIFFICULTY){
     if (easyButton.mouseOn()){
       difficulty = EASY;
       difficultySelected = true;
@@ -111,7 +122,7 @@ function mousePressed(){
     }
   }
 
-  else{
+  else if (gameState === PLAYING){
     getMouseTile();
 
     //toggle the clicked tile
@@ -128,12 +139,16 @@ function mousePressed(){
         toggleChainedZeroes(xTile, yTile);
       }
     }
+
+    else{
+      toggleLoss();
+    }
   }
 }
 
 function createGrid(){
   let tempGrid = [];
-  difficultySelected = true;
+  gameState = PLAYING;
   gridSize = DEFAULT_SIZE*difficulty;
   tileSize = 100/difficulty;
   gridLength = gridSize*tileSize;
@@ -170,9 +185,14 @@ function displayGrids(){
 
       //draw the tiles
       square(x*tileSize + xOffset, y*tileSize + yOffset, tileSize);
-      if (bombGrid[x][y] !== SAFE){
-        fill(0);
+      if (getNeighbouringBombs(x,y) !== EMPTY){
+        fill(tileColors[getNeighbouringBombs(x,y) - 1][0],tileColors[getNeighbouringBombs(x,y) - 1][1],tileColors[getNeighbouringBombs(x,y) - 1][2]);
         text(bombGrid[x][y], x*tileSize + tileSize/2 + xOffset, y*tileSize + tileSize/2 + yOffset);
+      }
+
+      //create the flooding system
+      if (bombGrid[x][y] === 0 && coveringGrid[x][y] === COVERING_TILE_OFF){
+        toggleChainedZeroes(x,y);
       }
 
       //covering grid
@@ -180,6 +200,11 @@ function displayGrids(){
       if (coveringGrid[x][y] === COVERING_TILE_ON){
         fill(200);
         square(x*tileSize + xOffset, y*tileSize + yOffset, tileSize);
+      }
+      else if(coveringGrid[x][y] === FLAG){
+        fill(255,0,0);
+        square(x*tileSize + xOffset, y*tileSize + yOffset, tileSize);
+        image(flagImg, x*tileSize + xOffset, y*tileSize + yOffset, tileSize, tileSize);
       }
     }
   }
@@ -195,7 +220,7 @@ function generateBombs(){
         tempGrid[rows].push(MINE);
       }
       else{
-        tempGrid[rows].push(SAFE);
+        tempGrid[rows].push(EMPTY);
       }
     }
   }
@@ -206,7 +231,7 @@ function getNeighbouringBombs(_x,_y){
   let neighbouringMines = 0;
   for (let i = -1; i <= 1; i++){
     for (let j = -1; j <= 1; j++){
-      if (_x + i >= 0 && _x + i <= gridSize-1 && _y + j >= 0 && _y + j <= gridSize - 1 && bombGrid[_x + i][_y + j] === MINE){
+      if (isInsideGrid(_x + i, _y + j) && bombGrid[_x + i][_y + j] === MINE){
         neighbouringMines++;
       }
       // maybe check if its empty here to create the flooding system
@@ -222,14 +247,10 @@ function toggleCoveringTile(_x,_y){
 function toggleChainedZeroes(_x,_y){
   for (let i = -1; i < 2; i++){
     for (let j = -1; j < 2; j++){
-      if (neighbouringMines === 0 && _x + i > 0 && _x + i < gridSize-1 && _y + j > 0 && _y + j < gridSize-1 && coveringGrid[_x + i][_y + j] === COVERING_TILE_ON){
-        chainedTiles++;
-        toggleChainedZeroes(_x + i, _y + j);
+      if (isInsideGrid(_x + i, _y + j)){
+        toggleCoveringTile(_x + i,_y + j);
+        bombGrid[_x + i][_y + j] = getNeighbouringBombs(_x + i, _y + j); 
       }
-      coveringGrid[_x + i][_y + j] = toggleCoveringTile(_x + i, _y + j);
-      neighbouringMines = getNeighbouringBombs(_x + i, _y + j);
-      bombGrid[_x + i][_y + j] = neighbouringMines; 
-      console.log(_x + i, _y + j);
     }
   }
   return;
@@ -238,12 +259,32 @@ function toggleChainedZeroes(_x,_y){
 function keyPressed(){
   if (key === 'e'){
     getMouseTile();
-  }
 
+    if (coveringGrid[xTile][yTile] === COVERING_TILE_ON){
+      coveringGrid[xTile][yTile] = FLAG;
+    }
+  }
 }
 
 function getMouseTile(){
   // get the tile that the mouse is on
   xTile = Math.floor((mouseX-xOffset)/tileSize);
   yTile = Math.floor((mouseY-yOffset)/tileSize);
+}
+
+function isInsideGrid(_x,_y){
+  return _x >= 0 && _x <= gridSize - 1 && _y >= 0 && _y <= gridSize - 1;
+}
+
+function toggleLoss(){
+  gameState = LOSS;
+  revealAll();
+}
+
+function revealAll(){
+  for (let x = 0; x < gridSize; x++){
+    for (let y = 0; y < gridSize; y++){
+      coveringGrid[x][y] = COVERING_TILE_OFF;
+    }
+  }
 }
