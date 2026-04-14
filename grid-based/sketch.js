@@ -286,8 +286,10 @@ function toggleLoss(){
 function revealAll(){
   for (let x = 0; x < gridSize; x++){
     for (let y = 0; y < gridSize; y++){
-      bombGrid[x][y] = getNeighbouringBombs(x,y);
-      coveringGrid[x][y] = COVERING_TILE_OFF;
+      if (bombGrid[x][y] === MINE){
+        coveringGrid[x][y] = COVERING_TILE_OFF;
+        
+      }
     }
   }
 }
