@@ -5,6 +5,8 @@
 // Extra for Experts:
 // - describe what you did to take this project "above and beyond"
 
+
+
 const SELECTING_DIFFICULTY = 0;
 const PLAYING = 1;
 const WIN = 2;
@@ -277,13 +279,14 @@ function isInsideGrid(_x,_y){
 }
 
 function toggleLoss(){
-  gameState = LOSS;
   revealAll();
+  gameState = LOSS;
 }
 
 function revealAll(){
   for (let x = 0; x < gridSize; x++){
     for (let y = 0; y < gridSize; y++){
+      bombGrid[x][y] = getNeighbouringBombs(x,y);
       coveringGrid[x][y] = COVERING_TILE_OFF;
     }
   }
