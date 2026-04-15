@@ -36,52 +36,54 @@ const COVERING_TILE_ON = 1;
 const COVERING_TILE_OFF = 0;
 const MINE_CHANCE = 10;
 let chainedTiles;
-let tileColors = [[78,159,229],[125, 192, 121], [255,47,0], [127,0,255], [108,20,19]];
+let tileColors;
 let flagImg;
+let mineImg;
 
+//create the class used for the difficulty buttons
+class difficultyButton {
+  constructor(difficulty, buttonColor, y){
+    this.difficulty = difficulty;
+    this.hoveredColor = buttonColor-20;
+    this.defaultColor = buttonColor;
+    this.currentColor = buttonColor;
+    this.buttonWidth = width/3;
+    this.buttonHeight = height/16;
+    this.x = width/3;
+    this.y = y;
+  }
+
+  drawButton (){
+    if (gameState === SELECTING_DIFFICULTY){
+      fill(this.currentColor);
+      rect(this.x,this.y,this.buttonWidth,this.buttonHeight);
+      fill('black');
+      textSize(20);
+      text(this.difficulty,width/2,this.y + height/32);
+    }
+  }
+
+  mouseOn (){
+    if (mouseX > this.x && mouseX < this.x + this.buttonWidth && mouseY > this.y && mouseY < this.y + this.buttonHeight){
+      this.currentColor = this.hoveredColor;
+      return true;
+    }
+    else{
+      this.currentColor = this.defaultColor;
+      return false;
+    }
+  }
+};
 function preload(){
   flagImg = loadImage("images/flag.png");
+  mineImg = loadImage("images/mine.jpg");
 }
 
 function setup() {
   textAlign(CENTER);
   createCanvas(windowWidth, windowHeight);
 
-  //create the class used for the difficulty buttons
-  class difficultyButton {
-    constructor(difficulty, buttonColor, y){
-      this.difficulty = difficulty;
-      this.hoveredColor = buttonColor-20;
-      this.defaultColor = buttonColor;
-      this.currentColor = buttonColor;
-      this.buttonWidth = width/3;
-      this.buttonHeight = height/16;
-      this.x = width/3;
-      this.y = y;
-    }
-
-    drawButton (){
-      if (gameState === SELECTING_DIFFICULTY){
-        fill(this.currentColor);
-        rect(this.x,this.y,this.buttonWidth,this.buttonHeight);
-        fill('black');
-        textSize(20);
-        text(this.difficulty,width/2,this.y + height/32);
-      }
-    }
-
-    mouseOn (){
-      if (mouseX > this.x && mouseX < this.x + this.buttonWidth && mouseY > this.y && mouseY < this.y + this.buttonHeight){
-        this.currentColor = this.hoveredColor;
-        return true;
-      }
-      else{
-        this.currentColor = this.defaultColor;
-        return false;
-      }
-    }
-  };
-
+  tileColors = [color(78,159,229),color(125, 192, 121), color(255,47,0), color(127,0,255), color(108,20,19), color(0,50,0), color(0,0,25), color(0)];
   //create the three difficulty buttons
   easyButton = new difficultyButton("Easy", 255, height/4 - height/16);
   mediumButton = new difficultyButton("Medium", 155, height/2 - height/16);
@@ -93,6 +95,7 @@ function draw() {
   displayDifficultyButtons();
   detectHovering();
   displayGrids();
+  displayTitles();
 }
 
 
@@ -128,7 +131,7 @@ function mousePressed(){
     getMouseTile();
 
     //toggle the clicked tile
-    coveringGrid[xTile][yTile] = toggleCoveringTile(xTile,yTile);
+    toggleCoveringTile(xTile,yTile);
 
     // if it isnt a mine then display the amount of neighbouring mines
     if (bombGrid[xTile][yTile] !== MINE){
@@ -141,8 +144,7 @@ function mousePressed(){
         toggleChainedZeroes(xTile, yTile);
       }
     }
-
-    else{
+    else if (coveringGrid[xTile][yTile] !== FLAG){
       toggleLoss();
     }
   }
@@ -177,19 +179,25 @@ function displayGrids(){
     for (let y = 0; y < gridSize; y++){
       //hidden grid
 
-      //color white if its safe and red if its a mine
-      if (bombGrid[x][y] !== MINE){
-        fill(255);
+      stroke('black');
+      textSize(tileSize/2);
+
+      if (bombGrid[x][y] === MINE){
+        fill('red');
       }
       else{
-        fill('red');
+        fill('white');
       }
 
       //draw the tiles
       square(x*tileSize + xOffset, y*tileSize + yOffset, tileSize);
       if (getNeighbouringBombs(x,y) !== EMPTY){
-        fill(tileColors[getNeighbouringBombs(x,y) - 1][0],tileColors[getNeighbouringBombs(x,y) - 1][1],tileColors[getNeighbouringBombs(x,y) - 1][2]);
+        fill(tileColors[getNeighbouringBombs(x,y) - 1]);
         text(bombGrid[x][y], x*tileSize + tileSize/2 + xOffset, y*tileSize + tileSize/2 + yOffset);
+        //draw a bomb over the text if its a mine
+        if (bombGrid[x][y] === MINE){
+          image(mineImg, x*tileSize + xOffset, y*tileSize + yOffset, tileSize, tileSize);
+        }
       }
 
       //create the flooding system
@@ -236,22 +244,26 @@ function getNeighbouringBombs(_x,_y){
       if (isInsideGrid(_x + i, _y + j) && bombGrid[_x + i][_y + j] === MINE){
         neighbouringMines++;
       }
-      // maybe check if its empty here to create the flooding system
     }
   }
   return neighbouringMines;
 }
 
 function toggleCoveringTile(_x,_y){
-  coveringGrid[_x][_y] = COVERING_TILE_OFF;
+  //issue here
+  if (coveringGrid[xTile][yTile] !== FLAG){
+    coveringGrid[_x][_y] = COVERING_TILE_OFF;
+  }
 }
 
 function toggleChainedZeroes(_x,_y){
   for (let i = -1; i < 2; i++){
     for (let j = -1; j < 2; j++){
       if (isInsideGrid(_x + i, _y + j)){
-        toggleCoveringTile(_x + i,_y + j);
-        bombGrid[_x + i][_y + j] = getNeighbouringBombs(_x + i, _y + j); 
+        if (coveringGrid[_x + i][_y + j] !== FLAG){
+          toggleCoveringTile(_x + i,_y + j);
+          bombGrid[_x + i][_y + j] = getNeighbouringBombs(_x + i, _y + j);
+        } 
       }
     }
   }
@@ -264,6 +276,13 @@ function keyPressed(){
 
     if (coveringGrid[xTile][yTile] === COVERING_TILE_ON){
       coveringGrid[xTile][yTile] = FLAG;
+    }
+    else if (coveringGrid[xTile][yTile] === FLAG){
+      coveringGrid[xTile][yTile] = COVERING_TILE_ON;
+    }
+
+    if (checkWin()){
+      gameState = WIN;
     }
   }
 }
@@ -288,8 +307,42 @@ function revealAll(){
     for (let y = 0; y < gridSize; y++){
       if (bombGrid[x][y] === MINE){
         coveringGrid[x][y] = COVERING_TILE_OFF;
-        
       }
     }
   }
+}
+
+function displayTitles(){
+  textAlign(CENTER);
+  if (gameState !== SELECTING_DIFFICULTY){
+    fill('black');
+    stroke('red');
+    textSize(20);
+    text('Mineseeper',width/2,yOffset/2);
+  }
+
+  if (gameState === LOSS){
+    fill('red');
+    stroke('black');
+    textSize(100);
+    text("Game Over!", width/2,height/2);
+  }
+
+  if (gameState === WIN){
+    fill('green');
+    stroke('black');
+    textSize(100);
+    text('Congratulations, You Win!');
+  }
+}
+
+function checkWin(){
+  for (let x = 0; x < gridSize; x++){
+    for (let y = 0; y < gridSize; y++){
+      if (bombGrid[x][y] === MINE && coveringGrid[x][y] !== FLAG){
+        return true;
+      }
+    }
+  }
+  return false;
 }

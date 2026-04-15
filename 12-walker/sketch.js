@@ -32,18 +32,38 @@ class Walker{
   }
 }
 
-let walt;
-let jesse;
+let theWalkers = [];
 
-function setup() {
-  createCanvas(windowWidth, windowHeight);
-  walt = new Walker('red',5,random(width),random(height),5);
-  jesse = new Walker('pink',10,random(width),random(height),2.5);
+function setup(){
+  createCanvas(windowWidth,windowHeight);
 }
 
-function draw() {
-  walt.move();
-  walt.display();
-  jesse.move();
-  jesse.display();
+function draw(){
+  for (aWalker of theWalkers){
+    aWalker.move();
+    aWalker.display();
+  }
 }
+
+function mousePressed(){
+  let someWalker = new Walker('blue',5,mouseX,mouseY,5);
+  someWalker.color = color(random(255),random(255),random(255));
+  theWalkers.push(someWalker);
+}
+//version with only two walkers
+
+// let walt;
+// let jesse;
+
+// function setup() {
+//   createCanvas(windowWidth, windowHeight);
+//   walt = new Walker('red',5,random(width),random(height),5);
+//   jesse = new Walker('pink',10,random(width),random(height),2.5);
+// }
+
+// function draw() {
+//   walt.move();
+//   walt.display();
+//   jesse.move();
+//   jesse.display();
+// }
