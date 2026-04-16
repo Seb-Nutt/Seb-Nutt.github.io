@@ -24,6 +24,10 @@ class Particle {
     this.y += this.dy;
     this.opacity--;
   }
+
+  isDead() {
+    return this.opacity <= 0;
+  }
 }
 
 let theFireworks = [];
@@ -36,9 +40,18 @@ function setup() {
 function draw() {
   background(0);
   for (let firework of theFireworks){
-    firework.update();
-    firework.display();
+    if (firework.isDead()){
+      // remove it
+      let index = theFireworks.indexOf(firework);
+      theFireworks.splice(index,1);
+    }
+    else{
+      firework.update();
+      firework.display();
+    }
   }
+
+  // mousePressed();
 }
 
 function mousePressed(){

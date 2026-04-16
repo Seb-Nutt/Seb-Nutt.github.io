@@ -294,7 +294,7 @@ function keyPressed(){
       if (checkWin()){
         gameState = WIN;
       }
-  }
+    }
   }
 }
 
