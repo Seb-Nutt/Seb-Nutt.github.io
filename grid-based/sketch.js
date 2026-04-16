@@ -1,9 +1,9 @@
 // Grid assignment (2d arrays)
-// Your Name
-// Date
-//Possibly minesweeper
+// Sebastian Nutt
+// April 15 2026
+
 // Extra for Experts:
-// - describe what you did to take this project "above and beyond"
+// I used classes before they were taught in person to create the difficulty buttons
 
 
 
@@ -54,6 +54,7 @@ class difficultyButton {
   }
 
   drawButton (){
+    //draw the buttons until the player selects a difficulty
     if (gameState === SELECTING_DIFFICULTY){
       fill(this.currentColor);
       rect(this.x,this.y,this.buttonWidth,this.buttonHeight);
@@ -64,6 +65,7 @@ class difficultyButton {
   }
 
   mouseOn (){
+    // return if the mouse if hovering over the button or not
     if (mouseX > this.x && mouseX < this.x + this.buttonWidth && mouseY > this.y && mouseY < this.y + this.buttonHeight){
       this.currentColor = this.hoveredColor;
       return true;
@@ -83,7 +85,9 @@ function setup() {
   textAlign(CENTER);
   createCanvas(windowWidth, windowHeight);
 
+  //define the colors used for the different numbers of surrounding mines
   tileColors = [color(78,159,229),color(125, 192, 121), color(255,47,0), color(127,0,255), color(108,20,19), color(0,50,0), color(0,0,25), color(0)];
+
   //create the three difficulty buttons
   easyButton = new difficultyButton("Easy", 255, height/4 - height/16);
   mediumButton = new difficultyButton("Medium", 155, height/2 - height/16);
@@ -111,22 +115,23 @@ function displayDifficultyButtons(){
 
 function mousePressed(){
   if (gameState === SELECTING_DIFFICULTY){
+    // if the difficulty is being selected then detect of the mouse is clikced on one of the buttons and set the difficulty accordingly
     if (easyButton.mouseOn()){
       difficulty = EASY;
-      difficultySelected = true;
       coveringGrid = createGrid();
     }
     else if (mediumButton.mouseOn()){
       difficulty = MEDIUM;
-      difficultySelected = true;
       coveringGrid = createGrid();
     }
     else if (hardButton.mouseOn()){
       difficulty = HARD;
       coveringGrid = createGrid();
     }
+
   }
 
+  //if the gameplay is active
   else if (gameState === PLAYING){
     getMouseTile();
 
@@ -137,13 +142,9 @@ function mousePressed(){
     if (bombGrid[xTile][yTile] !== MINE){
       neighbouringMines = getNeighbouringBombs(xTile, yTile);
       bombGrid[xTile][yTile] = neighbouringMines;
-
-      //if it has 0 nearby then toggle all neighbouring tiles
-      if (neighbouringMines === 0){
-        chainedTiles = 0;
-        toggleChainedZeroes(xTile, yTile);
-      }
     }
+
+    // if the bomb is a mine and is not flagged then toggle the loss screen
     else if (coveringGrid[xTile][yTile] !== FLAG){
       toggleLoss();
     }
@@ -151,24 +152,34 @@ function mousePressed(){
 }
 
 function createGrid(){
+
+
   let tempGrid = [];
+
+  //define various grid-related variables that will allow for accurate calculations
   gameState = PLAYING;
   gridSize = DEFAULT_SIZE*difficulty;
   tileSize = 100/difficulty;
   gridLength = gridSize*tileSize;
   xOffset = width/2 - gridLength/2;
   yOffset = height/2 - gridLength/2;
+
+  // create a grid of tiles that will cover the ones containing the mines
   for (let rows = 0; rows < gridSize; rows++){
     tempGrid.push([]);
     for (let cols = 0; cols < gridSize; cols++){
       tempGrid[rows].push(COVERING_TILE_ON);
     }
   }
+
+  //generate an identical grid to place the bombs in
   bombGrid = generateBombs();
   return tempGrid;
 }
 
 function detectHovering(){
+
+  //check if the mouse if hovering and change the color accordingly
   easyButton.mouseOn(easyButton.buttonColor);
   mediumButton.mouseOn(easyButton.buttonColor);
   hardButton.mouseOn(easyButton.buttonColor);
@@ -177,17 +188,10 @@ function detectHovering(){
 function displayGrids(){
   for (let x = 0; x < gridSize; x++){
     for (let y = 0; y < gridSize; y++){
-      //hidden grid
 
       stroke('black');
       textSize(tileSize/2);
-
-      if (bombGrid[x][y] === MINE){
-        fill('red');
-      }
-      else{
-        fill('white');
-      }
+      fill('white');
 
       //draw the tiles
       square(x*tileSize + xOffset, y*tileSize + yOffset, tileSize);
@@ -225,6 +229,7 @@ function generateBombs(){
   for (let rows = 0; rows < gridSize; rows++){
     tempGrid.push([]);
     for (let cols = 0; cols < gridSize; cols++){
+
       // add mines at a set chance
       if (random(100) < MINE_CHANCE){
         tempGrid[rows].push(MINE);
@@ -241,6 +246,7 @@ function getNeighbouringBombs(_x,_y){
   let neighbouringMines = 0;
   for (let i = -1; i <= 1; i++){
     for (let j = -1; j <= 1; j++){
+      //check to see if there is a mien in proximity and if ti is inside the grid to prevent edgecases
       if (isInsideGrid(_x + i, _y + j) && bombGrid[_x + i][_y + j] === MINE){
         neighbouringMines++;
       }
@@ -250,8 +256,8 @@ function getNeighbouringBombs(_x,_y){
 }
 
 function toggleCoveringTile(_x,_y){
-  //issue here
-  if (coveringGrid[xTile][yTile] !== FLAG){
+  // if the clicked tile isnt flagged then toggle it
+  if (coveringGrid[_x][_y] !== FLAG){
     coveringGrid[_x][_y] = COVERING_TILE_OFF;
   }
 }
@@ -260,6 +266,7 @@ function toggleChainedZeroes(_x,_y){
   for (let i = -1; i < 2; i++){
     for (let j = -1; j < 2; j++){
       if (isInsideGrid(_x + i, _y + j)){
+        //toggle all of the tiles neighbouring the one with zero neighbooring mines if the tile isnt flagged
         if (coveringGrid[_x + i][_y + j] !== FLAG){
           toggleCoveringTile(_x + i,_y + j);
           bombGrid[_x + i][_y + j] = getNeighbouringBombs(_x + i, _y + j);
@@ -273,17 +280,21 @@ function toggleChainedZeroes(_x,_y){
 function keyPressed(){
   if (key === 'e'){
     getMouseTile();
+    
+    //toggle a flag at the location where e was pressed
+    if (gameState === PLAYING){
+      if (coveringGrid[xTile][yTile] === COVERING_TILE_ON){
+        coveringGrid[xTile][yTile] = FLAG;
+      }
+      else if (coveringGrid[xTile][yTile] === FLAG){
+        coveringGrid[xTile][yTile] = COVERING_TILE_ON;
+      }
 
-    if (coveringGrid[xTile][yTile] === COVERING_TILE_ON){
-      coveringGrid[xTile][yTile] = FLAG;
-    }
-    else if (coveringGrid[xTile][yTile] === FLAG){
-      coveringGrid[xTile][yTile] = COVERING_TILE_ON;
-    }
-
-    if (checkWin()){
-      gameState = WIN;
-    }
+      //if all of the mines are flagged change the gamestate to won
+      if (checkWin()){
+        gameState = WIN;
+      }
+  }
   }
 }
 
@@ -294,17 +305,20 @@ function getMouseTile(){
 }
 
 function isInsideGrid(_x,_y){
+  //return if the reqquested tile is in the grid
   return _x >= 0 && _x <= gridSize - 1 && _y >= 0 && _y <= gridSize - 1;
 }
 
 function toggleLoss(){
-  revealAll();
+  //change the gamestate and reveal the bombs
+  revealBombs();
   gameState = LOSS;
 }
 
-function revealAll(){
+function revealBombs(){
   for (let x = 0; x < gridSize; x++){
     for (let y = 0; y < gridSize; y++){
+      // toggle the covering if the selected tile is a mine
       if (bombGrid[x][y] === MINE){
         coveringGrid[x][y] = COVERING_TILE_OFF;
       }
@@ -313,14 +327,18 @@ function revealAll(){
 }
 
 function displayTitles(){
+  //draw the various titles
   textAlign(CENTER);
+
+  //draw the minesweeper text at the top if you are past the difficulty selecting stage
   if (gameState !== SELECTING_DIFFICULTY){
     fill('black');
     stroke('red');
     textSize(20);
-    text('Mineseeper',width/2,yOffset/2);
+    text('Minesweeper',width/2,yOffset/2);
   }
 
+  //draw the game over text if the game is lost
   if (gameState === LOSS){
     fill('red');
     stroke('black');
@@ -328,21 +346,23 @@ function displayTitles(){
     text("Game Over!", width/2,height/2);
   }
 
+  //draw the winnign text if the game is won
   if (gameState === WIN){
     fill('green');
     stroke('black');
     textSize(100);
-    text('Congratulations, You Win!');
+    text('Congratulations, You Win!', width/2, height/2);
   }
 }
 
 function checkWin(){
+  //check every tile to see if there are unflagged mines, if there are none then return true
   for (let x = 0; x < gridSize; x++){
     for (let y = 0; y < gridSize; y++){
       if (bombGrid[x][y] === MINE && coveringGrid[x][y] !== FLAG){
-        return true;
+        return false;
       }
     }
   }
-  return false;
+  return true;
 }
